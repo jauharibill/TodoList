@@ -11,6 +11,7 @@ import UIKit
 class ViewTableViewController: UITableViewController {
     
     var itemArray = ["Find Mike","Buy Eggs"]
+    let defaults = UserDefaults.standard
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,6 +20,9 @@ class ViewTableViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        if let items = defaults.array(forKey: "ToDoListArray") as? [String]{
+            itemArray = items
+        }
     }
 
     // MARK: - Table view data source
@@ -65,6 +69,7 @@ class ViewTableViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             if let itemName = textFieldItem.text{
                 self.itemArray.append(itemName)
+                self.defaults.set(self.itemArray, forKey: "ToDoListArray")
                 self.tableView.reloadData()
             }
         }
