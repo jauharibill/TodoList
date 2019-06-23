@@ -10,7 +10,7 @@ import UIKit
 
 class ViewTableViewController: UITableViewController {
     
-    let itemArray = ["Find Mike","Buy Eggs"]
+    var itemArray = ["Find Mike","Buy Eggs"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,7 +55,23 @@ class ViewTableViewController: UITableViewController {
 //        itemArray[indexPath.row]
     }
     
-
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        var textFieldItem = UITextField()
+        let alert = UIAlertController(title: "Add New Todo Item", message: "", preferredStyle: .alert)
+        alert.addTextField { (textField) in
+            textField.placeholder = "Create new item"
+            textFieldItem = textField
+        }
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            if let itemName = textFieldItem.text{
+                self.itemArray.append(itemName)
+                self.tableView.reloadData()
+            }
+        }
+        alert.addAction(action)
+        present(alert, animated: true, completion: nil)
+    }
+    
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
