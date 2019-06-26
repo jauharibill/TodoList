@@ -10,9 +10,9 @@ import UIKit
 
 class ViewTableViewController: UITableViewController {
     
-    var itemArray = ["Find Mike","Buy Eggs"]
-    let defaults = UserDefaults.standard
-
+    var itemArray = [Item]()
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Item.plist")
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Uncomment the following line to preserve selection between presentations
@@ -20,9 +20,11 @@ class ViewTableViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
-        if let items = defaults.array(forKey: "ToDoListArray") as? [String]{
-            itemArray = items
-        }
+        loadItems()
+//        if let items = defaults.array(forKey: "ToDoListArray") as? [Item]{
+//            itemArray = items
+//        }
+
     }
 
     // MARK: - Table view data source
@@ -39,10 +41,13 @@ class ViewTableViewController: UITableViewController {
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+//        let cell = UITableViewCell(style: .default, reuseIdentifier: "ToDoItemCell")
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
 
         // Configure the cell...
-        cell.textLabel?.text = itemArray[indexPath.row]
+        cell.textLabel?.text = itemArray[indexPath.row].title
+        
+        cell.accessoryType = itemArray[indexPath.row].done ? .checkmark : .none
 
         return cell
     }
@@ -50,12 +55,9 @@ class ViewTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        }
-        else{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        saveItems()
+        tableView.deselectRow(at: indexPath, animated: true)
 //        itemArray[indexPath.row]
     }
     
@@ -67,16 +69,43 @@ class ViewTableViewController: UITableViewController {
             textFieldItem = textField
         }
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            
             if let itemName = textFieldItem.text{
-                self.itemArray.append(itemName)
-                self.defaults.set(self.itemArray, forKey: "ToDoListArray")
-                self.tableView.reloadData()
+                let newItem = Item()
+                    newItem.title = itemName
+                self.itemArray.append(newItem)
+                self.saveItems()
+                
             }
         }
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
     }
     
+    func saveItems(){
+        let encoder = PropertyListEncoder()
+        
+        do{
+            let data = try encoder.encode(self.itemArray)
+            try data.write(to: self.dataFilePath!)
+        }
+        catch{
+            print("error")
+        }
+        self.tableView.reloadData()
+    }
+    
+    func loadItems(){
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            do{
+                itemArray = try decoder.decode([Item].self, from: data)
+            }
+            catch{
+                print("error")
+            }
+        }
+    }
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
